@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenith Focus</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .nav-item {
+            @apply flex items-center gap-3 px-5 py-3 rounded-lg text-slate-400 cursor-pointer transition-all duration-300 ease-in-out hover:bg-slate-700 hover:text-white;
+        }
+
+        .nav-item.active {
+            @apply bg-emerald-500 text-white shadow-lg shadow-emerald-500/20;
+        }
+
+        .timer-button {
+            @apply w-24 h-24 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300 ease-in-out scale-100 hover:scale-105;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+            }
+
+            50% {
+                opacity: 0.8;
+                box-shadow: 0 0 0 8px rgba(22, 163, 74, 0);
+            }
+        }
+
+        .dot-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Fade-in animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .animate-fade-in-slow {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+            /* slate-800 */
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen p-4 md:p-8">
+
+    <div
+        class="absolute top-0 left-0 w-96 h-96 bg-emerald-500 rounded-full opacity-10 blur-3xl filter -translate-x-1/2 -translate-y-1/2">
+    </div>
+    <div
+        class="absolute bottom-0 right-0 w-96 h-96 bg-blue-500 rounded-full opacity-10 blur-3xl filter translate-x-1/2 translate-y-1/2">
+    </div>
+
+    <div id="login-screen" class="relative z-20 min-h-[80vh] flex items-center justify-center animate-fade-in">
+        <div class="glass-card rounded-xl p-8 md:p-12 w-full max-w-md flex flex-col items-center">
+
+            <div class="flex items-center gap-3 p-3 mb-6">
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M20 0C31.0457 0 40 8.9543 40 20C40 31.0457 31.0457 40 20 40C8.9543 40 0 31.0457 0 20C0 8.9543 8.9543 0 20 0ZM20 36C28.8366 36 36 28.8366 36 20C36 11.1634 28.8366 4 20 4C11.1634 4 4 11.1634 4 20C4 28.8366 11.1634 36 20 36Z"
+                        fill="#10B981" />
+                    <path
+                        d="M20 10C21.1046 10 22 10.8954 22 12V20H28C29.1046 20 30 20.8954 30 22C30 23.1046 29.1046 24 28 24H20C18.8954 24 18 23.1046 18 22V12C18 10.8954 18.8954 10 20 10Z"
+                        fill="#10B981" />
+                </svg>
+                <h1 class="text-3xl font-bold text-white">Zenith Focus</h1>
+            </div>
+            <p class="text-slate-400 mb-8">Please sign in to start your session.</p>
+
+            <div class="w-full flex flex-col gap-4">
+                <div>
+                    <label for="email" class="text-sm font-medium text-slate-300">Email</label>
+                    <input id="email" type="email" placeholder="you@example.com"
+                        class="mt-2 w-full glass-card border-none rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                    <label for="password" class="text-sm font-medium text-slate-300">Password</label>
+                    <input id="password" type="password" placeholder="••••••••"
+                        class="mt-2 w-full glass-card border-none rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <p id="login-error" class="text-red-400 text-sm text-center"></p>
+
+                <button onclick="handleLogin()"
+                    class="w-full mt-4 bg-gradient-to-br from-emerald-500 to-green-600 text-white font-semibold px-6 py-3 rounded-lg hover:from-emerald-600 transition-all shadow-lg hover:shadow-emerald-500/30">
+                    Sign In
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="main-app" class="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6 hidden">
+
+        <aside class="lg:col-span-1 lg:sticky lg:top-8 lg:h-[90vh]">
+            <div class="glass-card rounded-xl p-4 flex flex-col gap-2 h-full">
+
+                <div class="flex items-center gap-3 p-3 mb-2">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M20 0C31.0457 0 40 8.9543 40 20C40 31.0457 31.0457 40 20 40C8.9543 40 0 31.0457 0 20C0 8.9543 8.9543 0 20 0ZM20 36C28.8366 36 36 28.8366 36 20C36 11.1634 28.8366 4 20 4C11.1634 4 4 11.1634 4 20C4 28.8366 11.1634 36 20 36Z"
+                            fill="#10B981" />
+                        <path
+                            d="M20 10C21.1046 10 22 10.8954 22 12V20H28C29.1046 20 30 20.8954 30 22C30 23.1046 29.1046 24 28 24H20C18.8954 24 18 23.1046 18 22V12C18 10.8954 18.8954 10 20 10Z"
+                            fill="#10B981" />
+                    </svg>
+                    <div>
+                        <h1 class="text-xl font-bold text-white">Zenith Focus</h1>
+                        <p id="user-email" class="text-sm text-slate-400 truncate max-w-[150px]">user@example.com</p>
+                    </div>
+                </div>
+
+                <nav class="flex flex-col gap-2">
+                    <button id="nav-focus" class="nav-item active" onclick="showPage('focus')">
+                        <i data-lucide="shield" class="w-5 h-5"></i>
+                        <span class="font-medium">Focus</span>
+                    </button>
+                    <button id="nav-blocked" class="nav-item" onclick="showPage('blocked')">
+                        <i data-lucide="ban" class="w-5 h-5"></i>
+                        <span class="font-medium">Block List</span>
+                    </button>
+                    <button id="nav-history" class="nav-item" onclick="showPage('history')">
+                        <i data-lucide="history" class="w-5 h-5"></i>
+                        <span class="font-medium">History</span>
+                    </button>
+                </nav>
+
+                <div id="status-indicator" class="mt-4 p-4 rounded-lg bg-slate-900/50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-4 h-4 bg-slate-500 rounded-full transition-all" id="status-dot"></div>
+                        <span id="status-text" class="text-slate-400 font-medium">Not Connected</span>
+                    </div>
+                </div>
+
+                <div class="flex-grow"></div>
+
+                <div class="flex flex-col gap-2 pt-4 border-t border-slate-700/50">
+                    <button onclick="handleSignOut()"
+                        class="nav-item !text-yellow-500 hover:!bg-yellow-500/10 hover:!text-yellow-400">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                        <span class="font-medium">Sign Out</span>
+                    </button>
+                    <button onclick="handleExit()"
+                        class="nav-item !text-red-500 hover:!bg-red-500/10 hover:!text-red-400">
+                        <i data-lucide="power" class="w-5 h-5"></i>
+                        <span class="font-medium">Exit App</span>
+                    </button>
+                </div>
+
+            </div>
+        </aside>
+
+        <main class="lg:col-span-3 flex flex-col gap-6">
+
+            <div id="page-focus" class="page-content">
+                <div class="glass-card rounded-xl p-6 md:p-12 flex flex-col items-center shadow-2xl">
+                    <div id="3d-canvas" class="w-full h-64 cursor-grab active:cursor-grabbing"></div>
+                    <h2 id="timer-display" class="text-7xl lg:text-8xl font-bold text-white my-6"
+                        style="text-shadow: 0 0 20px rgba(255,255,255,0.3);">
+                        25:00
+                    </h2>
+                    <div class="flex items-center gap-3 mb-8">
+                        <label for="minutes-input" class="text-slate-400">Focus Time:</label>
+                        <input id="minutes-input" type="number" value="25"
+                            class="w-20 bg-slate-700 border border-slate-600 rounded-lg px-3 py-1 text-white text-center focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <span class="text-slate-400">minutes</span>
+                    </div>
+                    <div class="flex gap-6">
+                        <button id="start-button" onclick="startSession()"
+                            class="timer-button bg-gradient-to-br from-emerald-500 to-green-600 shadow-emerald-500/30">
+                            <i data-lucide="play" class="w-12 h-12 ml-1"></i>
+                        </button>
+                        <button id="stop-button" onclick="stopSession()"
+                            class="timer-button bg-gradient-to-br from-red-500 to-red-600 shadow-red-500/30"
+                            style="display: none;">
+                            <i data-lucide="stop-circle" class="w-12 h-12"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 2. Blocked Sites Page ===== -->
+            <div id="page-blocked" class="page-content hidden">
+                <div class="glass-card rounded-xl p-6 md:p-8 shadow-2xl">
+                    <h2 class="text-3xl font-bold text-white mb-6">Block List</h2>
+                    <div class="bg-slate-900/50 p-4 rounded-lg mb-6 border border-slate-700">
+                        <p class="text-slate-300">Add distracting application executables (e.g., `chrome.exe`,
+                            `javaw.exe`) to block during your focus sessions.</p>
+                    </div>
+                    <div class="flex gap-2 mb-6">
+                        <input id="block-input" type="text" placeholder="e.g., chrome.exe"
+                            class="flex-grow glass-card border-none rounded-lg px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <button onclick="addBlockItem()"
+                            class="flex-shrink-0 bg-gradient-to-br from-emerald-500 to-green-600 text-white font-semibold px-6 py-3 rounded-lg hover:from-emerald-600 transition-all shadow-lg hover:shadow-emerald-500/30">
+                            Add
+                        </button>
+                    </div>
+                    <div id="block-list" class="flex flex-col gap-3">
+                    </div>
+                </div>
+            </div>
+
+            <div id="page-history" class="page-content hidden">
+                <div class="glass-card rounded-xl p-6 md:p-8 shadow-2xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold text-white">Session History</h2>
+                        <button onclick="fetchHistory()"
+                            class="text-sm text-slate-400 hover:text-white flex items-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="history-list" class="w-full h-96 flex flex-col gap-3 overflow-auto pr-2">
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const API_URL = 'http://127.0.0.1:5000';
+        const STATUS_POLL_INTERVAL = 1000;
+
+        const loginScreen = document.getElementById('login-screen');
+        const mainApp = document.getElementById('main-app');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginError = document.getElementById('login-error');
+        const userEmailEl = document.getElementById('user-email');
+
+        const timerDisplay = document.getElementById('timer-display');
+        const startButton = document.getElementById('start-button');
+        const stopButton = document.getElementById('stop-button');
+        const minutesInput = document.getElementById('minutes-input');
+
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+
+        const blockListEl = document.getElementById('block-list');
+        const blockInputEl = document.getElementById('block-input');
+        const historyListEl = document.getElementById('history-list');
+
+        let totalDuration = (parseInt(minutesInput.value, 10) || 25) * 60;
+        let pollTimeout = null;
+
+        function handleLogin() {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                loginError.textContent = "Please enter both email and password.";
+                return;
+            }
+
+            loginError.textContent = "";
+            userEmailEl.textContent = email;
+
+            loginScreen.classList.add('hidden');
+            mainApp.classList.remove('hidden');
+            mainApp.classList.add('animate-fade-in-slow');
+
+            pollStatus();
+            init3D();
+
+            addBlockItem("chrome.exe", true);
+            addBlockItem("msedge.exe", true);
+            addBlockItem("javaw.exe", true);
+            addBlockItem("Minecraft.Windows.exe", true);
+        }
+
+        function handleSignOut() {
+            // Stop polling
+            if (pollTimeout) clearTimeout(pollTimeout);
+
+            // Hide main app, show login
+            mainApp.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            loginScreen.classList.add('animate-fade-in');
+
+            passwordInput.value = "";
+            loginError.textContent = "";
+            updateStatusIndicator(false, "Not Connected");
+        }
+
+        async function handleExit() {
+            if (confirm("Are you sure you want to shut down the Zenith Focus server?")) {
+                try {
+                    await fetch(`${API_URL}/shutdown`, { method: 'POST' });
+                    updateStatusIndicator(false, "Server shutting down...");
+                    alert("Server has been shut down. You can close this window.");
+                } catch (err) {
+                    alert("Could not connect to server to shut it down. Please close the terminal manually.");
+                }
+            }
+        }
+
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(page => page.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.remove('hidden');
+            document.getElementById(`nav-${pageId}`).classList.add('active');
+
+            if (pageId === 'history') {
+                fetchHistory();
+            }
+        }
+
+        async function startSession() {
+            const apps = Array.from(blockListEl.children).map(item => item.dataset.appName);
+            if (apps.length === 0) {
+                alert("Please add at least one application to the 'Block List' first.");
+                return;
+            }
+            const minutes = parseInt(minutesInput.value, 10) || 25;
+            totalDuration = minutes * 60;
+
+            try {
+                const response = await fetch(`${API_URL}/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ apps: apps, minutes: minutes })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    pollStatus();
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            } catch (err) {
+                updateStatusIndicator(false, "Connection Error");
+            }
+        }
+
+        async function stopSession() {
+            try {
+                const response = await fetch(`${API_URL}/stop`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    pollStatus();
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            } catch (err) {
+                updateStatusIndicator(false, "Connection Error");
+            }
+        }
+
+        async function fetchHistory() {
+            historyListEl.innerHTML = `<p class="text-slate-400">Loading history...</p>`;
+            try {
+                const response = await fetch(`${API_URL}/history`);
+                const data = await response.json();
+
+                if (!data.history || data.history === "No history found.") {
+                    historyListEl.innerHTML = `<p class="text-slate-400">No history found.</p>`;
+                    return;
+                }
+
+                historyListEl.innerHTML = "";
+                const lines = data.history.trim().split('\n').reverse(); // Newest first
+
+                lines.forEach(line => {
+                    const match = line.match(/\[(.*?)\] \[(.*?)\] (.*)/);
+                    if (!match) return;
+
+                    const [, timestamp, level, message] = match;
+                    let icon = 'info';
+                    let iconColor = 'text-blue-400';
+
+                    if (level === 'SUCCESS') {
+                        icon = 'check-circle';
+                        iconColor = 'text-emerald-400';
+                    } else if (level === 'ERROR') {
+                        icon = 'alert-triangle';
+                        iconColor = 'text-red-400';
+                    } else if (message.includes('Terminating')) {
+                        icon = 'zap-off';
+                        iconColor = 'text-yellow-400';
+                    }
+
+                    const item = document.createElement('div');
+                    item.className = 'glass-card p-4 rounded-lg flex items-center gap-4 animate-fade-in';
+                    item.innerHTML = `
+                        <div>
+                            <i data-lucide="${icon}" class="w-6 h-6 ${iconColor}"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <p class="font-medium text-white">${message}</p>
+                            <p class="text-sm text-slate-400">${timestamp}</p>
+                        </div>
+                    `;
+                    historyListEl.appendChild(item);
+                });
+
+                lucide.createIcons();
+
+            } catch (err) {
+                historyListEl.innerHTML = `<p class="text-red-400">Failed to load history. Is the server running?</p>`;
+            }
+        }
+
+        function updateStatusIndicator(isOnline, text = "Idle") {
+            if (isOnline) {
+                statusDot.classList.remove('bg-slate-500', 'bg-red-500');
+                statusDot.classList.add('bg-green-500');
+                statusText.textContent = text;
+                if (text === "Focusing") {
+                    statusDot.classList.add('dot-pulse');
+                } else {
+                    statusDot.classList.remove('dot-pulse');
+                }
+            } else {
+                statusDot.classList.remove('bg-green-500', 'dot-pulse');
+                statusDot.classList.add('bg-red-500');
+                statusText.textContent = text;
+            }
+        }
+
+        function updateTimerUI(timeRemaining) {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        async function pollStatus() {
+            if (pollTimeout) clearTimeout(pollTimeout);
+
+            try {
+                const response = await fetch(`${API_URL}/status`);
+                if (!response.ok) throw new Error('Server not reachable');
+
+                const data = await response.json();
+
+                if (data.isActive) {
+                    updateStatusIndicator(true, "Focusing");
+                    startButton.style.display = 'none';
+                    stopButton.style.display = 'flex';
+                    minutesInput.disabled = true;
+
+                    if (data.timeRemaining > totalDuration - 2 || data.timeRemaining === totalDuration) {
+                        totalDuration = (parseInt(minutesInput.value, 10) || 25) * 60;
+                    }
+                    updateTimerUI(data.timeRemaining);
+
+                } else {
+                    updateStatusIndicator(true, "Idle");
+                    startButton.style.display = 'flex';
+                    stopButton.style.display = 'none';
+                    minutesInput.disabled = false;
+
+                    const defaultMinutes = parseInt(minutesInput.value, 10) || 25;
+                    totalDuration = defaultMinutes * 60;
+                    updateTimerUI(totalDuration);
+                }
+
+                pollTimeout = setTimeout(pollStatus, STATUS_POLL_INTERVAL);
+
+            } catch (err) {
+                updateStatusIndicator(false, "Server Offline");
+                pollTimeout = setTimeout(pollStatus, 5000);
+            }
+        }
+
+        function addBlockItem(appName, isDefault = false) {
+            let text;
+            if (isDefault) {
+                text = appName;
+            } else {
+                text = blockInputEl.value.trim().toLowerCase();
+            }
+
+            if (text === "") return;
+
+            const item = document.createElement('div');
+            item.className = 'glass-card p-4 rounded-lg flex items-center justify-between animate-fade-in';
+            item.dataset.appName = text;
+            item.innerHTML = `
+                <span class="font-medium text-white">${text}</span>
+                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                </button>
+            `;
+            blockListEl.appendChild(item);
+            if (!isDefault) {
+                blockInputEl.value = "";
+            }
+            lucide.createIcons();
+        }
+
+        let scene, camera, renderer, cube;
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        const canvasContainer = document.getElementById('3d-canvas');
+
+        function init3D() {
+            if (scene) return; // Only init once
+
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(75, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
+            camera.position.z = 2.5;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+            canvasContainer.appendChild(renderer.domElement);
+
+            
+            const geometry = new THREE.IcosahedronGeometry(1.2, 1);
+            const material = new THREE.MeshBasicMaterial({ color: 0x10B981, wireframe: true });
+            cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+
+            canvasContainer.addEventListener('mousedown', (e) => isDragging = true);
+            canvasContainer.addEventListener('mouseup', (e) => isDragging = false);
+            canvasContainer.addEventListener('mouseout', (e) => isDragging = false);
+            canvasContainer.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const deltaMove = {
+                    x: e.offsetX - previousMousePosition.x,
+                    y: e.offsetY - previousMousePosition.y
+                };
+                cube.rotation.y += deltaMove.x * 0.005;
+                cube.rotation.x += deltaMove.y * 0.005;
+                previousMousePosition = { x: e.offsetX, y: e.offsetY };
+            });
+
+            new ResizeObserver(() => {
+                if (!renderer || !camera) return;
+                const width = canvasContainer.clientWidth;
+                const height = canvasContainer.clientHeight;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            }).observe(canvasContainer);
+
+            animate3D();
+        }
+
+        function animate3D() {
+            if (!scene) return; // Stop if scene not init
+            requestAnimationFrame(animate3D);
+            if (!isDragging) {
+                cube.rotation.x += 0.001;
+                cube.rotation.y += 0.001;
+            }
+            renderer.render(scene, camera);
+        }
+
+    </script>
+</body>
+
+</html>

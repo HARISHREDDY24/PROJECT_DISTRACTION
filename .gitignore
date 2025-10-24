@@ -1,0 +1,17 @@
+.venv/
+venv/
+*/.venv/
+*/venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# User data / logs
+zenith_focus_history.log
+zenith_profiles.json
+
+# VS Code settings
+.vscode/
